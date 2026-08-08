@@ -1,5 +1,3 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING
 from app.core.database import Base
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 

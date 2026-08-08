@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import TYPE_CHECKING
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 if TYPE_CHECKING:
@@ -11,7 +12,7 @@ class Category(Base):
     name: Mapped[str] = mapped_column(unique=True,index=True)
     slug:Mapped[str] = mapped_column(unique=True,index=True)
 
-    products:Mapped[Product] = relationship(back_populates='products')
+    products:Mapped[list[Product]] = relationship(back_populates='category')
 
     def __repr__(self):
         return f'<Category(id={self.id}, name = "{self.name}")>'
