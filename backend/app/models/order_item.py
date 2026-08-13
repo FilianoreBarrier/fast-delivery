@@ -15,7 +15,6 @@ class OrderItem(Base):
     product_id:Mapped[int]= mapped_column(ForeignKey("products.id"),index=True)
     quantity: Mapped[int] = mapped_column()
     price:Mapped[float] = mapped_column()
-
     product: Mapped[Product] = relationship()
     order:Mapped[Order] = relationship(back_populates='order_items')
 
