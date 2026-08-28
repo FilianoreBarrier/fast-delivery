@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .order import Order
+    from app.models.order.order import Order
 from app.core.database import Base
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
@@ -15,7 +15,7 @@ class User(Base):
     is_active:Mapped[bool]  = mapped_column(default=True)
     role: Mapped[str] = mapped_column(index=True)
 
-    orders: Mapped[list[Order]] = relationship(back_populates="user")
+    orders: Mapped[list["Order"]] = relationship(back_populates="user")
 
     def __repr__(self):
         return f"<User {self.email}>"

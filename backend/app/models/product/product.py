@@ -20,7 +20,7 @@ class Product(Base):
 
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id",ondelete ="CASCADE"), index=True)
 
-    category: Mapped[Category] = relationship(back_populates='products')
+    category: Mapped["Category"] = relationship(back_populates='products')
 
     def __repr__(self):
         return f'<Product(id={self.id},name = "{self.name}",price ={self.price})>'
