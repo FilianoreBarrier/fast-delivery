@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .order import Order
+    from app.models.order.order import Order
 from app.models.product.product import Product
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from app.core.database import Base
