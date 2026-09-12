@@ -1,5 +1,5 @@
 from app.models.user.user import User
-from app.schemas.user import UserCreate, UserInternalUpdate, UserUpdate, ChangePasswordSchema
+from app.schemas.user import UserCreate, UserUpdate
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
