@@ -1,28 +1,29 @@
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 import asyncio
 from typing import AsyncGenerator
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+
 
 from app.core.config import settings
 from app.core.database import Base
-# Обязательно импортируем файл инициализации моделей,
-# чтобы Base.metadata знал, какие таблицы нужно создать в БД
+
 import app.models
 
-# Берем рабочую строку подключения из конфига и подменяем имя базы на тестовую.
-# Например, если было delivery_db, станет test_delivery_db.
-TEST_DATABASE_URL = settings.DATABASE_URL.replace("postgres", "test_delivery_db")
+
+TEST_DATABASE_URL = settings.test_database_url
+
 
 # 1. Создаем асинхронный движок для тестовой базы данных
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 
 # 2. Создаем фабрику асинхронных сессий для тестов
-TestingSessionLocal = sessionmaker(
+# Не забудьте добавить импорт async_sessionmaker в самый верх файла!
+TestingSessionLocal = async_sessionmaker(
     bind=test_engine,
-    class_=AsyncSession,
     expire_on_commit=False
 )
+
 
 
 # Обязательная фикстура, которая настраивает цикл событий (event loop) для pytest-asyncio
