@@ -9,8 +9,6 @@ engine = create_async_engine(
 )
 
 SessionLocal = async_sessionmaker(
-    autocommit=False,
-    autoflush=False,
     bind=engine,
     expire_on_commit=False
 )
@@ -23,13 +21,3 @@ async def get_db():
             yield db
         finally:
             await db.close()
-
-
-# async def init_db():
-#     from app.models.user import User
-#     from app.models.habit import Habit
-#     from app.models.habit_log import HabitLog
-
-#     # Создание таблиц в асинхронном режиме через engine.begin()
-#     async with engine.begin() as conn:
-#         await conn.run_sync(Base.metadata.create_all)
