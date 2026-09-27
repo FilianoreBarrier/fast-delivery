@@ -18,16 +18,16 @@ async def test_create_category(category_repo):
 @pytest.mark.asyncio
 async def test_get_by_id(category_repo):
     test_category_data = CategoryCreate(
-        name='Electronic',
-        slug="electronic"
+        name='Electronic Test',
+        slug="electronic-test"
     )
     created_category = await category_repo.create(category_data = test_category_data)
     found_category = await category_repo.get_by_id(created_category.id)
 
     assert found_category is not None, "Категория должна быть найдена в базе"
     assert found_category.id == created_category.id
-    assert found_category.slug == "electronic"
-    assert found_category.name == "Electronic"
+    assert found_category.slug == "electronic-test"
+    assert found_category.name == "Electronic Test"
 
 @pytest.mark.asyncio
 async def test_get_by_slug(category_repo):
@@ -42,10 +42,3 @@ async def test_get_by_slug(category_repo):
     assert found_category.id == created_category.id
     assert found_category.slug == "phones"
     assert found_category.name == "IPhone"
-
-
-
-    # async def get_by_slug(self, slug: str) -> Category | None:
-    #     stmt = select(Category).where(Category.slug == slug)
-    #     result = await self.db.scalar(stmt)
-    #     return result
