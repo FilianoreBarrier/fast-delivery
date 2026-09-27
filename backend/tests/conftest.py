@@ -48,3 +48,13 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 def user_repo(db_session: AsyncSession):
     from app.repositories.user_repository import UserRepository
     return UserRepository(db_session)
+
+@pytest.fixture(scope = "function")
+def category_repo(db_session: AsyncSession):
+    from app.repositories.category_repository import CategoryRepository
+    return CategoryRepository(db_session)
+
+@pytest.fixture( scope = "function")
+def product_repo(db_session: AsyncSession):
+    from app.repositories.product_repository import ProductRepository
+    return ProductRepository(db_session)
