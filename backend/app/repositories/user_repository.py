@@ -56,7 +56,9 @@ class UserRepository:
             await self.db.refresh(user)
         return user
 
-    async def get_multiple_by_ids(self, id: list[int])-> list[User]:
-        stmt = select(User).where(User.id.in_(id))
+    async def get_multiple_by_ids(self, ids: list[int]) -> list[User]:
+        stmt = select(User).where(User.id.in_(ids))
         result = await self.db.scalars(stmt)
         return list(result.all())
+
+# add internal_update
