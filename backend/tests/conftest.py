@@ -58,3 +58,13 @@ def category_repo(db_session: AsyncSession):
 def product_repo(db_session: AsyncSession):
     from app.repositories.product_repository import ProductRepository
     return ProductRepository(db_session)
+
+@pytest.fixture( scope = "function")
+def order_repo(db_session: AsyncSession):
+    from app.repositories.order_repository import OrderRepository
+    return OrderRepository(db_session)
+
+@pytest.fixture(scope = "function")
+def token_repo(db_session:AsyncSession):
+    from app.repositories.token_repository import TokenRepository
+    return TokenRepository(db_session)
