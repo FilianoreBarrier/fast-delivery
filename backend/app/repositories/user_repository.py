@@ -61,4 +61,5 @@ class UserRepository:
         result = await self.db.scalars(stmt)
         return list(result.all())
 
+# add get_by_order
 # add internal_update
