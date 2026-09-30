@@ -5,7 +5,7 @@ class UserBase(BaseModel):
     username: str = Field(min_length=3, max_length=20, description="Unique username")
     email: EmailStr= Field(description="User email for authorization")
     full_name: Optional[str] = Field(default=None,max_length=50,description='User full name')
-    role: str = Field(description=":buyer or seller")
+    role: str = Field(description="buyer or seller")
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8, description='User password for authorization')
