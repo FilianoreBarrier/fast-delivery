@@ -73,7 +73,7 @@ async def test_get_all(user_repo):
     role = "buyer"
     )
 
-    cu_2 = await user_repo.create(   #cu - created_user
+    cu_2 = await user_repo.create(
         user_data=tud_2,
         hashed_password="some_hash",
         role = "seller"
