@@ -1,4 +1,5 @@
 from app.models.order.order import Order
+from app.models.order.order_item import OrderItem
 from app.schemas.order import OrderCreate, OrderUpdate
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -10,7 +11,7 @@ class OrderRepository:
         self.db = db
 
     async def get_all(self) -> list[Order]:
-        stmt = select(Order).options(selectinload(Order.order))
+        stmt = select(Order).options(selectinload(Order.order_items))
         result = await self.db.scalars(stmt)
         return list(result.all())
 
@@ -27,7 +28,7 @@ class OrderRepository:
         result = await self.db.scalars(stmt)
         return list(result.all())
 
-    async def create(self, order_data:OrderCreate) -> Order:
+    async def create(self, order_data:OrderCreate,total_price: float) -> Order:
         db_order = Order(
                     user_id = order_data.user_id,
                     total_price=0.0,
@@ -48,3 +49,12 @@ class OrderRepository:
             await self.db.commit()
             await self.db.refresh(order)
         return order
+
+    async def create_items(self, items:list[OrderItem])-> None:
+        self.db.add_all(items)
+        await self.db.commit()
+
+    async def get_order_with_items(self, id:int) -> Order | None:
+        stmt = select(Order).where(Order.id == id).options(selectinload(Order.order_items))
+        result = await self.db.scalar(stmt)
+        return result
