@@ -103,7 +103,7 @@ async def test_get_by_category(product_repo,category_repo):
 @pytest.mark.asyncio
 async def test_create(product_repo, category_repo):
     test_category_data = CategoryCreate(
-            name='Electronic',
+            name='Phones',
             slug="phone"
         )
     new_category = await category_repo.create(
