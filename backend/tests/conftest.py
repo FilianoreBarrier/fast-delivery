@@ -68,3 +68,8 @@ def order_repo(db_session: AsyncSession):
 def token_repo(db_session:AsyncSession):
     from app.repositories.token_repository import TokenRepository
     return TokenRepository(db_session)
+
+@pytest.fixture(scope="function")
+def order_service(db_session: AsyncSession):
+    from app.services.order_service import OrderService
+    return OrderService(db_session)
