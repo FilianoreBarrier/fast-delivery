@@ -1,6 +1,6 @@
 from app.models.order.order import Order
 from app.models.order.order_item import OrderItem
-from app.schemas.order import OrderCreate, OrderUpdate
+from app.schemas.order import OrderCreate, OrderStatusUpdate
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,7 +40,7 @@ class OrderRepository:
         await self.db.refresh(db_order)
         return db_order
 
-    async def update(self, id: int, order_update:OrderUpdate) -> Order:
+    async def status_update(self, id: int, order_update:OrderStatusUpdate) -> Order:
         order = await self.get_by_id(id)
         if order:
             update_data = order_update.model_dump(exclude_unset=True)

@@ -3,12 +3,15 @@ from typing import Dict
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import raise_user_not_found,raise_product_not_found, raise_order_not_found
+
 from app.repositories.order_repository import OrderRepository
 from app.repositories.product_repository import ProductRepository
 from app.repositories.user_repository import UserRepository
 
-from app.schemas.order import OrderCreate, OrderResponse
+from app.schemas.order import OrderCreate, OrderResponse, OrderStatusUpdate
 from app.models.order.order_item import OrderItem
+from app.models.order.order import OrderStatus
 
 
 class OrderService:
@@ -18,6 +21,27 @@ class OrderService:
         self.order_repository = OrderRepository(db)
         self.product_repository = ProductRepository(db)
         self.user_repository = UserRepository(db)
+
+    async def status_order_update(
+            self,
+            id: int,
+            order_update: OrderStatusUpdate
+    ):
+        order = await self.order_repository.get_by_id(id)
+
+        if not order:
+            raise_order_not_found(id)
+            return
+
+        if order.status == OrderStatus.CANCELLED:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot modify a cancelled order"
+            )
+        return await self.order_repository.status_update(id, order_update)
+
+
+
 
     async def create_order_from_cart(
         self,
@@ -34,10 +58,7 @@ class OrderService:
         user = await self.user_repository.get_by_id(user_id)
 
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with id {user_id} not found"
-            )
+            raise_user_not_found(user_id)
 
         calculated_total_price = 0.0
         order_items_to_save = []
