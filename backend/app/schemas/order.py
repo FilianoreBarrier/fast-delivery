@@ -1,6 +1,7 @@
 from pydantic import Field, BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
+from app.models.order.order import OrderStatus
 
 class OrderBase(BaseModel):
     user_id: int
@@ -12,17 +13,17 @@ class OrderItemResponse(BaseModel):
     quantity: int
     model_config = ConfigDict(from_attributes=True)
 
+class OrderStatusUpdate(BaseModel):
+    status:OrderStatus
+
 class OrderResponse(OrderBase):
 
     id: int = Field(description='Unique order ID')
     created_at: datetime
-    status: str = Field(description='Unpaid/Processing/In Delivery/Delivered')
+    status: OrderStatus = Field(description='Current status of the order')
     total_price: float
     order_items: list[OrderItemResponse]
     model_config = ConfigDict(from_attributes=True)
 
 class OrderCreate(OrderBase):
     pass
-
-class OrderUpdate(BaseModel):
-    status: Optional[str] = Field(description="Default - unpaid")
