@@ -1,9 +1,15 @@
 from __future__ import annotations
+from enum import Enum
+from sqlalchemy import Enum as SQLEnum
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from app.models.order.order import Order
 from app.core.database import Base
 from sqlalchemy.orm import relationship, mapped_column, Mapped
+
+class UserRole(str, Enum):
+    BUYER = "Buyer"
+    SELLER = "Seller"
 
 class User(Base):
     __tablename__ = "users"
@@ -13,7 +19,10 @@ class User(Base):
     hashed_password:Mapped[str]  = mapped_column()
     full_name:Mapped[str| None] = mapped_column ()
     is_active:Mapped[bool]  = mapped_column(default=True)
-    role: Mapped[str] = mapped_column(index=True)
+    role: Mapped[UserRole] = mapped_column(
+        SQLEnum(UserRole),
+        index=True,
+        default=UserRole.BUYER)
 
     orders: Mapped[list["Order"]] = relationship(back_populates="user")
 
