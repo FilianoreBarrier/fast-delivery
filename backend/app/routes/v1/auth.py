@@ -28,6 +28,16 @@ async def login_user(
         "user": UserResponse.model_validate(auth)
     }
 
+
+# users_activity
+
+@router.get('/users-activity',status_code=status.HTTP_200_OK)
+async def get_users_activity(
+    db:AsyncSession = Depends(get_db)
+):
+    user_service = UserService(db)
+    return await user_service.list_users()
+
 @router.post('/logout')
 async def logout(
     current_user:UserResponse = Depends(get_current_user),
