@@ -46,6 +46,7 @@ class AuthService:
                 )
 
             expire_time = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
+            expire_time = expire_time.replace(tzinfo=None)
 
         except jwt.PyJWTError:
             raise HTTPException(
