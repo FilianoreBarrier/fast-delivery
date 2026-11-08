@@ -8,8 +8,8 @@ from app.core.database import Base
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 class UserRole(str, Enum):
-    BUYER = "Buyer"
-    SELLER = "Seller"
+    BUYER = "buyer"
+    SELLER = "seller"
 
 class User(Base):
     __tablename__ = "users"
