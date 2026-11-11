@@ -1,6 +1,6 @@
 from app.models.order.order import Order
 from app.models.order.order_item import OrderItem
-from app.schemas.order import OrderCreate, OrderStatusUpdate
+from app.schemas.order import OrderCreate, OrderStatusUpdate, OrderStatus
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,16 +28,14 @@ class OrderRepository:
         result = await self.db.scalars(stmt)
         return list(result.all())
 
-    async def create(self, order_data:OrderCreate,total_price: float) -> Order:
+    async def create(self, order_data: OrderCreate, total_price: float) -> Order:
         db_order = Order(
-                    user_id = order_data.user_id,
-                    total_price=total_price,
-                    status = "Unpaid"
-
-                )
+            user_id=order_data.user_id,
+            total_price=total_price,
+            status=OrderStatus.UNPAID
+        )
         self.db.add(db_order)
-        await self.db.commit()
-        await self.db.refresh(db_order)
+        await self.db.flush()  # Генерируем ID, но не закрываем транзакцию
         return db_order
 
     async def status_update(self, id: int, order_update:OrderStatusUpdate) -> Order:
@@ -54,7 +52,12 @@ class OrderRepository:
         self.db.add_all(items)
         await self.db.commit()
 
-    async def get_order_with_items(self, id:int) -> Order | None:
-        stmt = select(Order).where(Order.id == id).options(selectinload(Order.order_items))
-        result = await self.db.scalar(stmt)
-        return result
+    async def get_order_with_items(self, order_id: int) -> Order | None:
+        stmt = (
+            select(Order)
+            .where(Order.id == order_id)
+            .options(selectinload(Order.order_items))
+            .execution_options(populate_existing=True)  # <-- Принудительно берем свежие данные из БД
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
