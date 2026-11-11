@@ -84,3 +84,7 @@ coverage
 celerybeat-schedule
 celerybeat-schedule-wal
 **/.env*
+
+.postman/
+postman/
+!**/.env.example
