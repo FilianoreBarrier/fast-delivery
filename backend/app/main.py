@@ -4,7 +4,7 @@ from app.core.config import settings
 from app.core.database import init_db
 import logging
 # Импорт роутеров
-from app.routes.v1 import auth_router, seller_prod_routes,seller_cat_routes, user_router
+from app.routes.v1 import auth_router, seller_prod_routes,seller_cat_routes, user_router, cart_router, order_router
 from contextlib import asynccontextmanager
 
 logging.basicConfig(level=logging.INFO)
@@ -35,6 +35,8 @@ app.include_router(auth_router, prefix="/api/v1", tags=["auth"])
 app.include_router(seller_prod_routes, prefix='/api/v1', tags = ["products"])
 app.include_router(seller_cat_routes, prefix='/api/v1', tags = ["categories"])
 app.include_router(user_router, prefix='/api/v1', tags = ["users"])
+app.include_router(cart_router, prefix='/api/v1', tags = ["cart"])
+app.include_router(order_router, prefix='/api/v1', tags = ["orders"])
 
 
 
