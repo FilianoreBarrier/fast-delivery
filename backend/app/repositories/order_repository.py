@@ -24,14 +24,14 @@ class OrderRepository:
         return list(result.all())
 
     async def get_by_user_id(self, user_id: int) -> list[Order]:
-        stmt =  select(Order).where(Order.user_id == user_id)
+        stmt =  select(Order).where(Order.user_id == user_id).options(selectinload(Order.order_items)) #загружаем товары сразу
         result = await self.db.scalars(stmt)
         return list(result.all())
 
     async def create(self, order_data:OrderCreate,total_price: float) -> Order:
         db_order = Order(
                     user_id = order_data.user_id,
-                    total_price=0.0,
+                    total_price=total_price,
                     status = "Unpaid"
 
                 )
