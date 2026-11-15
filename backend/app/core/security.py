@@ -3,6 +3,7 @@ from typing import Any, Optional, Union
 import bcrypt
 from app.core.config import settings
 from app.core.database import get_db
+from app.models.user.user import UserRole
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserResponse
 from fastapi import Depends, HTTPException, status
@@ -12,7 +13,6 @@ from jwt.exceptions import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.token_repository import TokenRepository
 
-# Ссылка, куда FastAPI будет отправлять пользователя для логина
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
@@ -32,41 +32,26 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 # ==================== JWT Operations ====================
-
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     """Создаёт JWT access token"""
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=30)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
 
-    # Payload токена. Поле 'sub' обязательно должно содержать ID пользователя
     to_encode = {"exp": expire, "sub": str(subject)}
-
-    # Создаём JWT токен через PyJWT
-    encoded_jwt = jwt.encode(
-        to_encode,
-        settings.secret_key,
-        algorithm=settings.algorithm
-    )
-    return encoded_jwt
+    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
 
 def decode_access_token(token: str) -> Optional[dict]:
     """Декодирует JWT токен и возвращает payload или None при ошибке"""
     try:
-        payload = jwt.decode(
-            token,
-            settings.secret_key,
-            algorithms=[settings.algorithm]
-        )
-        return payload
+        return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
     except InvalidTokenError:
         return None
 
 
 # ==================== FastAPI Dependencies ====================
-
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db)
@@ -85,15 +70,25 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-
     payload = decode_access_token(token)
     if payload is None:
         raise credentials_exception
-    # Получаем ID пользователя из поля 'sub'
     user_id: Optional[str] = payload.get("sub")
     if user_id is None:
         raise credentials_exception
     user = await UserRepository(db).get_by_id(int(user_id))
-    if user is None:
+    if user is None or not user.is_active:
         raise credentials_exception
     return UserResponse.model_validate(user)
+
+
+async def require_seller(
+    current_user: UserResponse = Depends(get_current_user),
+) -> UserResponse:
+    """Доступ только для продавцов (роль seller)"""
+    if current_user.role != UserRole.SELLER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seller role required",
+        )
+    return current_user
