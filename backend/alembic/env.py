@@ -21,7 +21,7 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-# Получаем URL напрямую из окружения (или из настроек приложения, если запускаете локально)
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     from app.core.config import settings
