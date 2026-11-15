@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class OrderRepository:
+    """Репозиторий НЕ делает commit: транзакцией управляет сервис."""
     def __init__(self, db: AsyncSession):
         self.db = db
 
@@ -24,7 +25,11 @@ class OrderRepository:
         return list(result.all())
 
     async def get_by_user_id(self, user_id: int) -> list[Order]:
-        stmt =  select(Order).where(Order.user_id == user_id).options(selectinload(Order.order_items)) #загружаем товары сразу
+        stmt = (
+            select(Order)
+            .where(Order.user_id == user_id)
+            .options(selectinload(Order.order_items))  # загружаем товары сразу
+        )
         result = await self.db.scalars(stmt)
         return list(result.all())
 
@@ -32,32 +37,31 @@ class OrderRepository:
         db_order = Order(
             user_id=order_data.user_id,
             total_price=total_price,
-            status=OrderStatus.UNPAID
+            status=OrderStatus.UNPAID,
         )
         self.db.add(db_order)
-        await self.db.flush()  # Генерируем ID, но не закрываем транзакцию
+        await self.db.flush()  # получаем ID, транзакция остаётся открытой
         return db_order
 
-    async def status_update(self, id: int, order_update:OrderStatusUpdate) -> Order:
+    async def status_update(self, id: int, order_update: OrderStatusUpdate) -> Order | None:
         order = await self.get_by_id(id)
         if order:
-            update_data = order_update.model_dump(exclude_unset=True)
-            for k, v in update_data.items():
+            for k, v in order_update.model_dump(exclude_unset=True).items():
                 setattr(order, k, v)
-            await self.db.commit()
+            await self.db.flush()
             await self.db.refresh(order)
         return order
 
-    async def create_items(self, items:list[OrderItem])-> None:
+    async def create_items(self, items: list[OrderItem]) -> None:
         self.db.add_all(items)
-        await self.db.commit()
+        await self.db.flush()
 
     async def get_order_with_items(self, order_id: int) -> Order | None:
         stmt = (
             select(Order)
             .where(Order.id == order_id)
             .options(selectinload(Order.order_items))
-            .execution_options(populate_existing=True)  # <-- Принудительно берем свежие данные из БД
+            .execution_options(populate_existing=True)
         )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
