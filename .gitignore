@@ -27,6 +27,13 @@ pip-delete-this-directory.txt
 .coverage
 .pytest_cache/
 htmlcov/
+
+alembic.ini
+backend/app/alembic.ini
+app/alembic.ini
+.alembic.ini
+backend/alembic.ini
+
 .env
 backend/app/.env
 app/.env
