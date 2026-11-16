@@ -43,10 +43,8 @@ class ProductRepository:
         return await self.get_by_id(db_product.id)
 
     async def get_multiple_by_ids(self, product_ids: list[int]) -> list[Product]:
-        stmt = (
-            select(Product)
-            .options(joinedload(Product.category))
-            .where(Product.id.in_(product_ids))
-        )
-        result = await self.db.scalars(stmt)
-        return list(result.all())
+        if not product_ids:
+            return []
+        stmt = select(Product).where(Product.id.in_(product_ids))
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
