@@ -19,17 +19,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    order_status_enum = sa.Enum(
-        'UNPAID', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED',
-        name='orderstatus'
-    )
-    order_status_enum.create(op.get_bind(), checkfirst=True)
-    op.alter_column('orders', 'status',
+    user_role_enum = sa.Enum('BUYER', 'SELLER', name='userrole')
+    user_role_enum.create(op.get_bind(), checkfirst=True)
+
+    op.alter_column('users', 'role',
                existing_type=sa.VARCHAR(),
-               type_=order_status_enum,
+               type_=user_role_enum,
                existing_nullable=False,
-               postgresql_using="status::orderstatus")
-    # ### end Alembic commands ###
+               postgresql_using="UPPER(role::text)::userrole")
 
 
 def downgrade() -> None:
