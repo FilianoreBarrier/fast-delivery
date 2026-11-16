@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
+from redis.asyncio import Redis
+
 from app.core.database import get_db
+from app.core.redis import get_redis
 from app.services.order_service import OrderService
 from app.schemas.user import UserResponse
 from app.schemas.order import OrderResponse,OrderCreate
@@ -21,8 +24,9 @@ async def get_orders(db:AsyncSession = Depends(get_db),
 @router.post('/', response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
 async def create_order(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    redis: Redis = Depends(get_redis)
 ):
     """Создание заказа из текущей корзины пользователя"""
     order_service = OrderService(db)
-    return await order_service.create_order_from_cart(current_user.id)
+    return await order_service.create_order_from_cart(current_user.id, redis)

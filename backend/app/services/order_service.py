@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from redis.asyncio import Redis
 
 from app.core.exceptions import raise_user_not_found, raise_order_not_found
 from app.models.order.order import OrderStatus
@@ -43,9 +44,9 @@ class OrderService:
             raise
         return updated
 
-    async def create_order_from_cart(self, user_id: int) -> OrderResponse:
-        cart_service = CartService(self.db)
-        cart_data = cart_service.get_raw_cart(user_id)
+    async def create_order_from_cart(self, user_id: int, redis:Redis) -> OrderResponse:
+        cart_service = CartService(self.db, redis)
+        cart_data = await cart_service.get_raw_cart(user_id)
         if not cart_data:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -96,7 +97,7 @@ class OrderService:
             raise
 
         # Корзину чистим только после успешного commit
-        cart_service.clear_cart(user_id)
+        await cart_service.clear_cart(user_id)
 
         full_order = await self.order_repository.get_order_with_items(new_order.id)
         return OrderResponse.model_validate(full_order)
