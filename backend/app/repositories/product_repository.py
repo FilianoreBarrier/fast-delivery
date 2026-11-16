@@ -35,6 +35,14 @@ class ProductRepository:
         result = await self.db.scalars(stmt)
         return list(result.all())
 
+    async def get_by_name(self, name:str) -> Product|None:
+        stmt = (
+                    select(Product)
+                    .options(joinedload(Product.category))
+                    .where(Product.name == name)
+                )
+        return await self.db.scalar(stmt)
+
     async def create(self, product_data: ProductCreate) -> Product:
         db_product = Product(**product_data.model_dump())
         self.db.add(db_product)
