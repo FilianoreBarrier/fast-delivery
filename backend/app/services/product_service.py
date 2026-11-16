@@ -43,6 +43,13 @@ class ProductService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f'Category with id {product_data.category_id} does not exist'
             )
+        existing = await self.product_repository.get_by_name(product_data.name)
+
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Product with '{product_data.name}' already exists"
+            )
         product = await self.product_repository.create(product_data)
         return ProductResponse.model_validate(product)
 
