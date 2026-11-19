@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.security import verify_password
+from app.core.security import verify_password_async
 from app.models.user.token_blacklist import TokenBlackList
 from app.repositories.token_repository import TokenRepository
 from app.repositories.user_repository import UserRepository
@@ -19,7 +19,7 @@ class AuthService:
     async def authenticate_user(self, email: str, password: str) -> UserResponse:
         """Проверка учетных данных пользователя для входа"""
         user = await self.user_repository.get_by_email(email)
-        if not user or not verify_password(password, user.hashed_password):
+        if not user or not verify_password_async (password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password",

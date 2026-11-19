@@ -7,6 +7,7 @@ from app.models.user.user import UserRole
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserResponse
 from fastapi import Depends, HTTPException, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from jwt.exceptions import InvalidTokenError
@@ -15,14 +16,16 @@ from app.repositories.token_repository import TokenRepository
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-
 # ==================== Password Hashing ====================
 def get_password_hash(password: str) -> str:
-    """Хэширует пароль с помощью bcrypt"""
+    """Синхронное хэширование пароля с помощью bcrypt (для тестов и скриптов)"""
     password_bytes = password[:72].encode('utf-8')
     hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
     return hashed.decode('utf-8')
 
+async def get_password_hash_async(password: str) -> str:
+    """Асинхронное хэширование пароля без блокировки Event Loop"""
+    return await run_in_threadpool(get_password_hash, password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Проверяет пароль"""
@@ -30,6 +33,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     hashed_bytes = hashed_password.encode('utf-8')
     return bcrypt.checkpw(plain_bytes, hashed_bytes)
 
+async def verify_password_async(plain_password: str, hashed_password: str) -> bool:
+    """Асинхронная проверка пароля без блокировки Event Loop"""
+    return await run_in_threadpool(verify_password, plain_password, hashed_password)
 
 # ==================== JWT Operations ====================
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
