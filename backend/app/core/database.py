@@ -5,6 +5,10 @@ from app.core.config import settings
 
 engine = create_async_engine(
     settings.database_url,
+    pool_size = 10,  # базовое количество постоянных соединений на 1 воркер
+    max_overflow = 10,# сколько дополнительных соединений можно открыть на пике
+    pool_timeout = 30,
+    pool_pre_ping = True,
     echo=settings.debug
 )
 
