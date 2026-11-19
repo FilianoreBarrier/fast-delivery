@@ -48,7 +48,6 @@ pytest-asyncio==1.4.0
 python-dotenv==1.2.2
 python-engineio==4.15.1
 python-socketio==5.18.1
-pywin32==312
 PyYAML==6.0.3
 pyzmq==27.3.0
 redis==8.1.0
