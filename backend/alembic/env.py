@@ -25,7 +25,7 @@ target_metadata = Base.metadata
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     from app.core.config import settings
-    DATABASE_URL = settings.DATABASE_URL
+    DATABASE_URL = settings.database_url
 
 
 def run_migrations_offline() -> None:

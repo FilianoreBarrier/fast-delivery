@@ -17,6 +17,7 @@ class Product(Base):
     price: Mapped[float] = mapped_column()
     image_url:Mapped[str|None] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    is_active: Mapped[bool] = mapped_column(default=True, server_default="true")
 
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id",ondelete ="CASCADE"), index=True)
 
