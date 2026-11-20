@@ -17,6 +17,7 @@ createApp({
     const products = ref([]);
     const selectedCategory = ref(null);
     const productNames = reactive({});
+    const sellerProducts = ref([]);
 
     const cart = ref({ items: [], total: 0, items_count: 0 });
     const orders = ref([]);
@@ -89,7 +90,7 @@ createApp({
       .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
     /* ---------- HTTP-клиент + инспектор ---------- */
-    async function api(method, path, { body, auth = true } = {}) {
+    async function api(method, path, { body, auth = true, quiet = false } = {}) {
       const url = API + path;
       const headers = {};
       if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -98,7 +99,7 @@ createApp({
       const shown = body && typeof body === 'object' ? { ...body } : body;
       if (shown && shown.password) shown.password = '••••••••';
 
-      Object.assign(inspector, {
+      if (!quiet) Object.assign(inspector, {
         pending: true, method, url, status: null,
         requestBody: shown !== undefined ? JSON.stringify(shown, null, 2) : null,
         responseBody: null,
@@ -111,7 +112,7 @@ createApp({
           body: body !== undefined ? JSON.stringify(body) : undefined,
         });
       } catch (e) {
-        Object.assign(inspector, {
+        if (!quiet) Object.assign(inspector, {
           pending: false, status: 'NETWORK',
           responseBody: `Не удалось выполнить запрос: ${e.message}\nПроверьте, что Nginx проксирует /api/ на бэкенд.`,
         });
@@ -122,7 +123,7 @@ createApp({
       let data = null;
       try { data = text ? JSON.parse(text) : null; } catch { data = text; }
 
-      Object.assign(inspector, {
+      if (!quiet) Object.assign(inspector, {
         pending: false, status: res.status,
         responseBody: typeof data === 'string' ? data : JSON.stringify(data, null, 2),
       });
@@ -213,22 +214,27 @@ createApp({
     }
 
     /* ---------- каталог ---------- */
-    async function loadCategories() {
-      categories.value = await api('GET', '/categories/');
+    async function loadCategories(quiet = false) {
+      categories.value = await api('GET', '/categories/', { quiet });
     }
 
-    async function loadProducts() {
+    async function loadProducts(quiet = false) {
       loading.catalog = true;
       try {
         const path = selectedCategory.value === null
           ? '/products/'
           : `/products/category/${selectedCategory.value}`;
-        const data = await api('GET', path);
+        const data = await api('GET', path, { quiet });
         products.value = data.products;
         data.products.forEach((p) => (productNames[p.id] = p.name));
       } finally {
         loading.catalog = false;
       }
+    }
+
+    async function loadCatalog() {
+      try { await loadCategories(); } catch (e) { notify(e.message, 'error'); }
+      try { await loadProducts(); } catch (e) { notify(e.message, 'error'); }
     }
 
     function selectCategory(id) {
@@ -277,6 +283,56 @@ createApp({
         notify(`Товар «${p.name}» добавлен`);
         Object.assign(prodForm, { name: '', description: '', price: null, image_url: '' });
         await loadProducts();
+        await loadSellerProducts(true);
+      });
+    }
+
+    async function loadSellerProducts(quiet = false) {
+      const data = await api('GET', '/products/', { quiet });
+      sellerProducts.value = data.products;
+      data.products.forEach((p) => (productNames[p.id] = p.name));
+    }
+
+    async function loadSellerData(quiet = false) {
+      try { await loadCategories(quiet); } catch (e) { notify(e.message, 'error'); }
+      try { await loadSellerProducts(quiet); } catch (e) { notify(e.message, 'error'); }
+    }
+
+    // Тихо обновляет все списки, не затирая в инспекторе ответ на DELETE
+    async function refreshAfterDelete() {
+      await loadSellerData(true);
+      try { await loadProducts(true); } catch (e) { /* список каталога обновится при переходе */ }
+    }
+
+    async function deleteProduct(p) {
+      if (!confirm(`Удалить товар «${p.name}»?`)) return;
+      await run(async () => {
+        try {
+          await api('DELETE', `/products/${p.id}`);
+        } catch (e) {
+          // Если сервер вернул ошибку уже после удаления — проверяем по факту
+          await refreshAfterDelete();
+          if (sellerProducts.value.some((x) => x.id === p.id)) throw e;
+        }
+        await refreshAfterDelete();
+        notify(`Товар «${p.name}» удалён`);
+      });
+    }
+
+    async function deleteCategory(c) {
+      const n = sellerProducts.value.filter((p) => p.category_id === c.id).length;
+      const extra = n ? `\n\nВместе с ней будут удалены товары: ${n} шт.` : '';
+      if (!confirm(`Удалить категорию «${c.name}»?${extra}`)) return;
+      await run(async () => {
+        try {
+          await api('DELETE', `/categories/${c.id}`);
+        } catch (e) {
+          await refreshAfterDelete();
+          if (categories.value.some((x) => x.id === c.id)) throw e;
+        }
+        if (selectedCategory.value === c.id) selectedCategory.value = null;
+        await refreshAfterDelete();
+        notify(`Категория «${c.name}» удалена`);
       });
     }
 
@@ -336,8 +392,8 @@ createApp({
       tab.value = id;
       if (id === 'cart') await loadCart();
       if (id === 'orders') await loadOrders();
-      if (id === 'catalog') await run(async () => { await loadCategories(); await loadProducts(); });
-      if (id === 'seller') await run(loadCategories);
+      if (id === 'catalog') await run(loadCatalog);
+      if (id === 'seller') await run(() => loadSellerData());
     }
 
     /* ---------- старт ---------- */
@@ -347,8 +403,7 @@ createApp({
         catch { clearSession(); }
       }
       await run(async () => {
-        await loadCategories();
-        await loadProducts();
+        await loadCatalog();
         if (user.value) await loadCart(true);
       });
     });
@@ -356,6 +411,7 @@ createApp({
     return {
       tab, tabs, authMode, busy, loading, toast, inspector, inspectorStatusClass,
       user, isSeller, categories, products, selectedCategory, productNames,
+      sellerProducts, deleteProduct, deleteCategory,
       cart, orders, loginForm, regForm, catForm, catSlugTouched, prodForm,
       money, dateTime, statusClass,
       login, register, logout, goTo, selectCategory, addToCart,

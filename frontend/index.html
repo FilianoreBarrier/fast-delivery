@@ -195,6 +195,37 @@
         <p v-if="!categories.length" class="text-sm text-amber-700">Сначала создайте хотя бы одну категорию.</p>
         <button :disabled="busy || !categories.length" class="bg-route hover:bg-route-dark disabled:opacity-50 text-white font-semibold rounded-lg px-4 py-2">Добавить товар</button>
       </form>
+
+      <!-- Управление: удаление -->
+      <div class="bg-white rounded-xl border border-slate-200 p-5 self-start">
+        <h2 class="font-semibold text-lg mb-3">Категории <span class="text-sm font-normal text-slate-500">({{ categories.length }})</span></h2>
+        <p v-if="!categories.length" class="text-sm text-slate-500">Категорий пока нет.</p>
+        <ul class="divide-y divide-slate-100 max-h-80 overflow-auto">
+          <li v-for="c in categories" :key="c.id" class="py-2 flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="font-medium truncate">{{ c.name }}</div>
+              <div class="text-xs text-slate-500 font-mono truncate">{{ c.slug }} · id {{ c.id }}</div>
+            </div>
+            <button @click="deleteCategory(c)" :disabled="busy"
+                    class="text-sm px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50">Удалить</button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 p-5 self-start">
+        <h2 class="font-semibold text-lg mb-3">Товары <span class="text-sm font-normal text-slate-500">({{ sellerProducts.length }})</span></h2>
+        <p v-if="!sellerProducts.length" class="text-sm text-slate-500">Товаров пока нет.</p>
+        <ul class="divide-y divide-slate-100 max-h-80 overflow-auto">
+          <li v-for="p in sellerProducts" :key="p.id" class="py-2 flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="font-medium truncate">{{ p.name }}</div>
+              <div class="text-xs text-slate-500 truncate">{{ p.category?.name }} · {{ money(p.price) }} · id {{ p.id }}</div>
+            </div>
+            <button @click="deleteProduct(p)" :disabled="busy"
+                    class="text-sm px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50">Удалить</button>
+          </li>
+        </ul>
+      </div>
     </section>
 
     <!-- КОРЗИНА -->
