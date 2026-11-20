@@ -31,10 +31,10 @@ async def create_category(
     service = CategoryService(db)
     return await service.create_category(category_data)
 
-@router.delete("/{category_id}",response_model=CategoryResponse)
+@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_category(category_id:int,
                          db: AsyncSession = Depends(get_db),
                          seller:UserResponse = Depends(require_seller)
                          ):
     service = CategoryService(db)
-    return await service.delete_category(category_id)
+    await service.delete_category(category_id)

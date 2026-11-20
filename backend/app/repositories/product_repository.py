@@ -31,6 +31,8 @@ class ProductRepository:
             select(Product)
             .options(joinedload(Product.category))
             .where(Product.category_id == category_id)
+
+
         )
         result = await self.db.scalars(stmt)
         return list(result.all())
