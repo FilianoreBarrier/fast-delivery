@@ -50,6 +50,15 @@ class ProductRepository:
         # перечитываем вместе с category, чтобы ответ можно было сериализовать
         return await self.get_by_id(db_product.id)
 
+    async def delete(self, product_id:int) -> bool:
+        product =await self.get_by_id(product_id)
+        if product:
+            await self.db.delete(product)
+            await self.db.commit()
+            return True
+        return False
+
+
     async def get_multiple_by_ids(self, product_ids: list[int]) -> list[Product]:
         if not product_ids:
             return []

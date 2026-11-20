@@ -53,6 +53,15 @@ class ProductService:
         product = await self.product_repository.create(product_data)
         return ProductResponse.model_validate(product)
 
+    async def delete_product(self, product_id: int) -> bool:
+        product = await self.product_repository.delete(product_id)
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f'Product with id "{product_id}" - not found.'
+            )
+        return True
+
     async def get_batch_products_by_ids(self, ids: List[int]) -> List[ProductResponse]:
         if not ids:
             return []

@@ -29,3 +29,11 @@ class CategoryRepository:
         await self.db.commit()
         await self.db.refresh(db_category)
         return db_category
+
+    async def delete(self, category_id:int) -> bool:
+        category =await self.get_by_id(category_id)
+        if category:
+            await self.db.delete(category)
+            await self.db.commit()
+            return True
+        return False

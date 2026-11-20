@@ -25,6 +25,13 @@ async def create_product(
     service = ProductService(db)
     return await service.create_product(product_data)
 
+@router.delete("/{product_id}",response_model=ProductResponse)
+async def delete_product(product_id:int,
+                         db: AsyncSession = Depends(get_db),
+                         seller:UserResponse = Depends(require_seller)
+                         ):
+    service = ProductService(db)
+    return await service.delete_product(product_id)
 
 @router.get("/{product_id}", response_model=ProductResponse, status_code=status.HTTP_200_OK)
 async def get_product_by_id(product_id: int, db: AsyncSession = Depends(get_db)):
