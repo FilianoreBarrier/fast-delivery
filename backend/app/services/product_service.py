@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
+from sqlalchemy.exc import IntegrityError
 
 from app.repositories.product_repository import ProductRepository
 from app.repositories.category_repository import CategoryRepository
@@ -53,14 +54,21 @@ class ProductService:
         product = await self.product_repository.create(product_data)
         return ProductResponse.model_validate(product)
 
-    async def delete_product(self, product_id: int) -> bool:
-        product = await self.product_repository.delete(product_id)
+    async def delete_product(self, product_id: int) -> None:
+        product = await self.product_repository.get_by_id(product_id)
         if not product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'Product with id "{product_id}" - not found.'
+                detail="Product not found",
             )
-        return True
+        try:
+            await self.product_repository.delete(product)
+        except IntegrityError:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot delete product because it is referenced in existing orders",
+            )
+
 
     async def get_batch_products_by_ids(self, ids: List[int]) -> List[ProductResponse]:
         if not ids:
