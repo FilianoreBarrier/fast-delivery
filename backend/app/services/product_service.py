@@ -62,7 +62,7 @@ class ProductService:
                 detail="Product not found",
             )
         try:
-            await self.product_repository.delete(product)
+            await self.product_repository.delete(product_id)
         except IntegrityError:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,

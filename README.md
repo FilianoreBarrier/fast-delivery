@@ -1,12 +1,6 @@
 # FastDelivery — Fullstack E-commerce & Delivery Platform
 
-[![FastDelivery CI](https://github.com)](https://github.com)
-![Python](https://shields.io)
-![FastAPI](https://shields.io)
-![PostgreSQL](https://shields.io)
-![Redis](https://shields.io)
-![Docker](https://shields.io)
-![Vue.js](https://shields.io)
+
 
 Асинхронный высоконагруженный REST API сервис для платформы доставки и электронной коммерции с демонстрационным SPA-фронтендом на **Vue 3**, обратным проксированием через **Nginx**, кэшированием и хранением сессий в **Redis**, автоматическим CI-тестированием и подтвержденной оптимизацией производительности под нагрузкой.
 
@@ -81,7 +75,7 @@ fast-delivery/
 
 ### 1. Клонирование репозитория
 ```bash
-git clone https://github.com
+git clone https://github.com/FilianoreBarrier/fast-delivery
 cd fast-delivery
 ```
 

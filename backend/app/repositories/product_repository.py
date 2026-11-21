@@ -5,6 +5,7 @@ from app.schemas.product import ProductCreate
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
 class ProductRepository:
     def __init__(self, db: AsyncSession):
@@ -52,13 +53,17 @@ class ProductRepository:
         # перечитываем вместе с category, чтобы ответ можно было сериализовать
         return await self.get_by_id(db_product.id)
 
-    async def delete(self, product_id:int) -> bool:
-        product =await self.get_by_id(product_id)
-        if product:
+    async def delete(self, product_id: int) -> bool:
+        product = await self.get_by_id(product_id)
+        if not product:
+            return False
+        try:
             await self.db.delete(product)
             await self.db.commit()
             return True
-        return False
+        except IntegrityError:
+            await self.db.rollback()
+            raise
 
 
     async def get_multiple_by_ids(self, product_ids: list[int]) -> list[Product]:
